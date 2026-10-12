@@ -285,10 +285,16 @@ a:hover {
 .skill-progress {
     height: 100%;
     background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-    /* Starts empty; JavaScript sets the width to --skill-level when the
-       skills section scrolls into view (Part 4). */
-    width: 0;
+    /* The --skill-level set in the JSX drives the width; CSS fills the bar,
+       so no JavaScript is needed for this in React. */
+    width: var(--skill-level);
     transition: width 1s ease;
+    animation: fillProgress 1s ease forwards;
+}
+
+@keyframes fillProgress {
+    from { width: 0; }
+    to { width: var(--skill-level); }
 }
 
 .skill-percentage {
