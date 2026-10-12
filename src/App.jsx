@@ -1,6 +1,164 @@
+import { useEffect } from 'react'
 import './App.css'
 
 function App() {
+  // ============================================
+  // PART 4: EVENT HANDLERS (migrated from Week 6 script.js)
+  // ============================================
+
+  // Smooth scroll: the link names the section it should scroll to
+  const handleNavClick = (e) => {
+    e.preventDefault();
+    const targetId = e.currentTarget.getAttribute('href');
+    const targetSection = document.querySelector(targetId);
+    if (targetSection) {
+      targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    // Close the mobile menu after picking a destination
+    document.querySelector('.nav-menu').classList.remove('active');
+    document.querySelector('.nav-toggle').classList.remove('active');
+  };
+
+  // Show the cards in the chosen category, hide the rest
+  const handleFilterClick = (e) => {
+    const filterValue = e.currentTarget.getAttribute('data-filter');
+
+    document.querySelectorAll('.project-card').forEach(card => {
+      const cardCategory = card.getAttribute('data-category');
+      if (filterValue === 'all' || cardCategory === filterValue) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    // Only the clicked button stays active
+    document.querySelectorAll('.filter-btn').forEach(btn =>
+      btn.classList.remove('active')
+    );
+    e.currentTarget.classList.add('active');
+  };
+
+  // Slide the mobile menu in and out
+  const handleMobileMenuToggle = () => {
+    document.querySelector('.nav-menu').classList.toggle('active');
+    document.querySelector('.nav-toggle').classList.toggle('active');
+  };
+
+  // ---------- form validation ----------
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const showError = (input, message) => {
+    clearError(input);
+    const error = document.createElement('span');
+    error.className = 'error-message';
+    error.textContent = message;
+    input.classList.add('error');
+    input.classList.remove('success');
+    input.parentElement.appendChild(error);
+  };
+
+  const clearError = (input) => {
+    const error = input.parentElement.querySelector('.error-message');
+    if (error) {
+      error.remove();
+    }
+    input.classList.remove('error');
+  };
+
+  const showSuccess = (input) => {
+    clearError(input);
+    input.classList.add('success');
+    input.classList.remove('error');
+  };
+
+  // One rule per field, reused by the live check and the submit check
+  const validateName = () => {
+    const nameInput = document.querySelector('#name');
+    if (nameInput.value.trim().length < 2) {
+      showError(nameInput, 'Name must be at least 2 characters');
+      return false;
+    }
+    showSuccess(nameInput);
+    return true;
+  };
+
+  const validateEmail = () => {
+    const emailInput = document.querySelector('#email');
+    if (!isValidEmail(emailInput.value)) {
+      showError(emailInput, 'Please enter a valid email address');
+      return false;
+    }
+    showSuccess(emailInput);
+    return true;
+  };
+
+  const validateMessage = () => {
+    const messageInput = document.querySelector('#message');
+    if (messageInput.value.trim().length < 10) {
+      showError(messageInput, 'Message must be at least 10 characters');
+      return false;
+    }
+    showSuccess(messageInput);
+    return true;
+  };
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+
+    // Run every check, so all problems show at once
+    const nameOk = validateName();
+    const emailOk = validateEmail();
+    const messageOk = validateMessage();
+
+    if (nameOk && emailOk && messageOk) {
+      const form = e.currentTarget;
+      const successMsg = document.createElement('div');
+      successMsg.className = 'success-message';
+      successMsg.textContent = 'Thank you! Your message has been sent successfully.';
+      form.appendChild(successMsg);
+
+      setTimeout(() => {
+        form.reset();
+        successMsg.remove();
+        document.querySelectorAll('.success').forEach(input =>
+          input.classList.remove('success')
+        );
+      }, 3000);
+    }
+  };
+
+  // Highlight the nav link of whichever section is on screen
+  const handleScroll = () => {
+    const sections = document.querySelectorAll('section');
+    const scrollPos = window.scrollY + 100;
+
+    sections.forEach(section => {
+      const sectionTop = section.offsetTop;
+      const sectionHeight = section.offsetHeight;
+      const sectionId = section.getAttribute('id');
+
+      if (scrollPos >= sectionTop && scrollPos < sectionTop + sectionHeight) {
+        document.querySelectorAll('.nav-link').forEach(link =>
+          link.classList.remove('active')
+        );
+        const activeLink = document.querySelector(`.nav-link[href="#${sectionId}"]`);
+        if (activeLink) {
+          activeLink.classList.add('active');
+        }
+      }
+    });
+  };
+
+  // Attach the window listener once on load, remove it on unload
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <>
       {/* Navigation Bar */}
@@ -9,14 +167,14 @@ function App() {
                   <span>Azad Jagtap</span>
               </div>
               <ul className="nav-menu">
-                  <li><a href="#home" className="nav-link">Home</a></li>
-                  <li><a href="#about" className="nav-link">About</a></li>
-                  <li><a href="#skills" className="nav-link">Skills</a></li>
-                  <li><a href="#projects" className="nav-link">Projects</a></li>
-                  <li><a href="#contact" className="nav-link">Contact</a></li>
+                  <li><a href="#home" className="nav-link" onClick={handleNavClick}>Home</a></li>
+                  <li><a href="#about" className="nav-link" onClick={handleNavClick}>About</a></li>
+                  <li><a href="#skills" className="nav-link" onClick={handleNavClick}>Skills</a></li>
+                  <li><a href="#projects" className="nav-link" onClick={handleNavClick}>Projects</a></li>
+                  <li><a href="#contact" className="nav-link" onClick={handleNavClick}>Contact</a></li>
               </ul>
               {/* Mobile menu toggle (for bonus implementation) */}
-              <div className="nav-toggle">
+              <div className="nav-toggle" onClick={handleMobileMenuToggle}>
                   <span></span>
                   <span></span>
                   <span></span>
@@ -157,11 +315,11 @@ function App() {
 
                   {/* TODO: Add JavaScript to make these filter buttons interactive */}
                   <div className="filter-buttons">
-                      <button className="filter-btn active" data-filter="all">All Projects</button>
-                      <button className="filter-btn" data-filter="frontend">Frontend</button>
-                      <button className="filter-btn" data-filter="fullstack">Full-Stack</button>
-                      <button className="filter-btn" data-filter="design">Design</button>
-                      <button className="filter-btn" data-filter="webapp">Web App</button>
+                      <button className="filter-btn active" data-filter="all" onClick={handleFilterClick}>All Projects</button>
+                      <button className="filter-btn" data-filter="frontend" onClick={handleFilterClick}>Frontend</button>
+                      <button className="filter-btn" data-filter="fullstack" onClick={handleFilterClick}>Full-Stack</button>
+                      <button className="filter-btn" data-filter="design" onClick={handleFilterClick}>Design</button>
+                      <button className="filter-btn" data-filter="webapp" onClick={handleFilterClick}>Web App</button>
                   </div>
 
                   <div className="projects-grid">
@@ -290,17 +448,17 @@ function App() {
                       <p>I'm always interested in hearing about new opportunities and projects. Feel free to reach out!</p>
 
                       {/* TODO: Add JavaScript to validate this form in real-time */}
-                      <form id="contact-form" className="contact-form">
+                      <form id="contact-form" className="contact-form" onSubmit={handleFormSubmit}>
                           <div className="form-grid">
                               <div className="form-group">
                                   <label htmlFor="name">Name *</label>
-                                  <input type="text" id="name" name="name" required />
+                                  <input type="text" id="name" name="name" onChange={validateName} required />
                                   {/* TODO: Add error message element here */}
                               </div>
 
                               <div className="form-group">
                                   <label htmlFor="email">Email *</label>
-                                  <input type="email" id="email" name="email" required />
+                                  <input type="email" id="email" name="email" onChange={validateEmail} required />
                                   {/* TODO: Add error message element here */}
                               </div>
 
@@ -311,7 +469,7 @@ function App() {
 
                               <div className="form-group form-group-full">
                                   <label htmlFor="message">Message *</label>
-                                  <textarea id="message" name="message" rows="5" required></textarea>
+                                  <textarea id="message" name="message" rows="5" onChange={validateMessage} required></textarea>
                                   {/* TODO: Add error message element here */}
                               </div>
 
